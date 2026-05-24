@@ -141,27 +141,56 @@
         </div>
     </div>
 
-    <script>
-        function toggleMusic() {
-            const audio = document.getElementById('romantic-audio');
-            const btn = document.getElementById('music-toggle-btn');
-            const iconPlay = document.getElementById('icon-music-play');
-            const iconPause = document.getElementById('icon-music-pause');
-
-            if (audio.paused) {
-                audio.play().then(() => {
-                    iconPlay.classList.add('hidden');
-                    iconPause.classList.remove('hidden');
-                    btn.classList.add('animate-spin-slow', 'bg-rose-50');
-                }).catch(err => console.log("Playback diblokir browser, butuh interaksi user.", err));
-            } else {
-                audio.pause();
-                iconPlay.classList.remove('hidden');
-                iconPause.classList.add('hidden');
-                btn.classList.remove('animate-spin-slow', 'bg-rose-50');
-            }
-        }
-    </script>
+   <script>
+       const audio = document.getElementById('romantic-audio');
+       const btn = document.getElementById('music-toggle-btn');
+       const iconPlay = document.getElementById('icon-music-play');
+       const iconPause = document.getElementById('icon-music-pause');
+       
+       // Fungsi untuk menyalakan/mematikan musik lewat tombol manual
+       function toggleMusic() {
+           if (audio.paused) {
+               audio.muted = false; // Pastikan suara aktif saat di-play manual
+               audio.play().then(() => {
+                   updateMusicUI(true);
+               }).catch(err => console.log(err));
+           } else {
+               audio.pause();
+               updateMusicUI(false);
+           }
+       }
+       
+       // Fungsi pembantu untuk mengubah tampilan tombol
+       function updateMusicUI(isPlaying) {
+           if (isPlaying) {
+               iconPlay.classList.add('hidden');
+               iconPause.classList.remove('hidden');
+               btn.classList.add('animate-spin-slow', 'bg-rose-50');
+           } else {
+               iconPlay.classList.remove('hidden');
+               iconPause.classList.add('hidden');
+               btn.classList.remove('animate-spin-slow', 'bg-rose-50');
+           }
+       }
+       
+       // Trik Autoplay: Begitu user berinteraksi dengan layar (klik/sentuh), 
+       // suara (unmute) akan langsung aktif otomatis tanpa merusak estetika.
+       function activateAutoplay() {
+           if (audio.paused || audio.muted) {
+               audio.muted = false;
+               audio.play().then(() => {
+                   updateMusicUI(true);
+               }).catch(err => console.log("Menunggu interaksi pertama...", err));
+           }
+           // Hapus event listener setelah berhasil agar tidak berjalan berulang kali
+           window.removeEventListener('click', activateAutoplay);
+           window.removeEventListener('touchstart', activateAutoplay);
+       }
+       
+       // Pasang detektor interaksi di layar
+       window.addEventListener('click', activateAutoplay);
+       window.addEventListener('touchstart', activateAutoplay);
+   </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
